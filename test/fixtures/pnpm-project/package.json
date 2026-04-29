@@ -1,0 +1,10 @@
+{
+  "name": "pnpm-project",
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "build:app": "tsc -b",
+    "test:unit": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "dev": "vite"
+  }
+}

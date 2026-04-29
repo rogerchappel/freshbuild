@@ -1,0 +1,8 @@
+{
+  "name": "mixed-lockfiles",
+  "packageManager": "npm@10.8.0",
+  "scripts": {
+    "verify": "npm run test",
+    "compile": "tsc"
+  }
+}

@@ -1,48 +1,34 @@
 # Local-first behavior and security guarantees
 
-freshbuild is designed to run against local repository state without surprising
-side effects.
+freshbuild is designed for local agent loops and human review.
 
-## What freshbuild does locally
+## Guarantees
 
-- Reads `package.json` and known lockfiles to detect package managers.
-- Reads `package.json#scripts` to categorize build, test, lint, check, and
-  typecheck scripts.
-- Polls local file metadata to detect created, modified, and deleted files.
-- Writes optional verification summaries to caller-selected local paths.
+- It does not call remote APIs or send telemetry.
+- It does not install packages, publish packages, or mutate git remotes.
+- It does not read credentials intentionally: no npm tokens, SSH keys, env secret
+  scanning, or git credential helper calls.
+- Watch output and proof artifacts stay on disk under `.freshbuild/` unless the
+  caller chooses another local directory.
+- Child processes are spawned with `shell: false`.
 
-## What freshbuild does not do
+## Command safety model
 
-- It does not contact remote services or package registries.
-- It does not publish packages, push Git branches, open pull requests, or mutate
-  remote state.
-- It does not read credentials such as npm tokens, SSH keys, Git credentials, or
-  arbitrary environment secrets.
-- It does not execute detected package scripts in the current implemented
-  modules.
+The runner only considers scripts detected from local `package.json`. Before a
+check runs, freshbuild validates:
 
-## Caller responsibilities
+- package manager is one of npm, pnpm, yarn, bun
+- script name matches a conservative check/test/lint/typecheck/build allowlist
+- run command is exactly package-manager `run <script>`
+- the first token of the script body is in a known tool allowlist
+- shell control tokens such as `&&`, `|`, redirection, backticks, and `$` are
+  refused by default
 
-freshbuild returns structured signals. If an application chooses to run commands
-based on those signals, that application should:
+Rejected checks are not hidden; they appear as skipped with warnings in the
+verification summary.
 
-1. Show or log the exact command it will run.
-2. Run the smallest useful check for the changed files.
-3. Add debounce and locking before long-running processes.
-4. Avoid forwarding source, logs, summaries, or credentials to remote systems
-   unless the user explicitly enables that behavior.
+## Remaining risk
 
-The targeted check runner is intentionally not present in this implementation
-wave because process execution, debounce, and locking behavior require explicit
-approval before implementation.
-
-## Default ignored directories
-
-The file watcher skips common high-noise directories by default:
-
-- `.git`, `.hg`, `.svn`
-- `node_modules`
-- `.freshbuild`, `.turbo`, `.next`
-- `dist`, `build`, `coverage`
-
-Callers can add more ignored directory names through watcher options.
+Package scripts are repository-owned code. If you do not trust a repository's
+scripts, use `freshbuild plan` or `freshbuild run --dry-run` first and review the
+plan before executing.

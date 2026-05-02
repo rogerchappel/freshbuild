@@ -1,143 +1,131 @@
 # freshbuild
 
-freshbuild is a local-first toolkit for detecting project build signals, watching
-changed files, and producing verification proof-of-work artifacts.
+freshbuild is a local-first build watcher for agent work: it detects the package
+manager and project scripts, chooses the smallest useful checks from changed
+files, runs only allowlisted local scripts, and writes proof-of-work artifacts a
+human can review.
 
-The idea is simple: watch a repository, rerun the smallest useful checks after a
-change, and write proof-of-work artifacts that humans and agents can attach to a
-handoff or pull request.
-
-## Why this exists
-
-Fast agent loops break down when verification is slow, noisy, or undocumented.
-`freshbuild` is scoped to make local feedback tighter without turning into a CI
-replacement.
-
-This repository is early-stage. The targeted check runner is not implemented yet;
-it remains blocked pending explicit approval because debounce/locking behavior can
-start processes and introduce race-condition risk. Current modules are detection,
-file watching, and verification summary generation.
+It is intentionally boring in the best way. No cloud service, no daemon account,
+no hidden telemetry — just fast local feedback and receipts.
 
 ## Install
 
 ```sh
-npm install freshbuild
+npm install -D freshbuild
 ```
 
-For local development from this repository:
+Or run from a checkout:
 
 ```sh
 npm install
 npm test
+npm run smoke
 ```
 
-freshbuild uses standard Node.js ECMAScript modules and has no runtime package
-dependencies.
+## CLI quickstart
 
-## Quickstart
+Plan checks without running anything:
 
-Detect the package manager and build-related package scripts:
+```sh
+npx freshbuild plan --changed src/index.js,test/index.test.js
+```
+
+Run selected checks and write `.freshbuild/verification-summary.md` plus JSON:
+
+```sh
+npx freshbuild run --changed src/index.js --output .freshbuild
+```
+
+Smoke it against this repo's fixture project:
+
+```sh
+node src/cli.js run --root test/fixtures/smoke-project --changed src/index.js --output .freshbuild/smoke
+```
+
+## Library quickstart
 
 ```js
-import {
-  detectBuildScripts,
-  detectPackageManager,
-  renderVerificationSummaryMarkdown,
-  watchProjectFiles
-} from 'freshbuild';
+import { planChecks, runChecks, watchProjectFiles, DebouncedCheckRunner } from 'freshbuild';
 
-const packageManager = await detectPackageManager(process.cwd());
-const buildScripts = await detectBuildScripts(process.cwd());
+const plan = await planChecks(process.cwd(), { changedFiles: ['src/index.js'] });
+console.log(plan.checks.map((check) => check.name));
 
-console.log(packageManager.packageManager);
-console.log(buildScripts.scriptsByCategory);
+const result = await runChecks(process.cwd(), {
+  changedFiles: ['src/index.js'],
+  outputDirectory: '.freshbuild'
+});
+console.log(result.status, result.artifacts);
 
+const runner = new DebouncedCheckRunner(process.cwd(), { outputDirectory: '.freshbuild' });
 const watcher = watchProjectFiles(process.cwd(), {
   intervalMs: 500,
-  onChange(event) {
-    console.log('changed files:', event.changedFiles);
-  }
+  onChange: (event) => runner.schedule(event.changedFiles)
 });
-
 await watcher.start();
-
-const markdown = renderVerificationSummaryMarkdown({
-  project: 'my-project',
-  overallStatus: 'passed',
-  checks: [{ name: 'unit tests', status: 'passed', command: 'npm test' }],
-  changedFiles: ['src/index.js']
-});
-
-console.log(markdown);
-
-await watcher.stop();
 ```
 
-## Verification summaries
+## What gets selected
 
-freshbuild can create Markdown and JSON verification summaries for pull-request
-review packs:
+freshbuild maps changed files to conservative categories:
 
-```js
-import { writeVerificationSummary } from 'freshbuild';
+- package metadata: check, typecheck, test, build, lint
+- source files: check, typecheck, test, lint, build
+- tests: test, lint
+- docs/config: check/lint/test where scripts exist
 
-await writeVerificationSummary(
-  {
-    project: 'my-project',
-    branch: 'agent/example',
-    commit: 'abc1234',
-    checks: [{ name: 'test suite', status: 'passed', command: 'npm test' }],
-    artifacts: [{ path: 'coverage/index.html', type: 'html' }]
-  },
-  { outputDirectory: '.freshbuild' }
-);
+Only the first matching script per category is selected, in stable order. That
+keeps agent loops short while still producing meaningful proof.
+
+## Safety and privacy
+
+freshbuild is local-first by design:
+
+- no hidden network calls, telemetry, publishing, or registry access
+- no credential discovery; it does not read tokens, SSH keys, or git credentials
+- no shell string execution; child processes use `shell: false`
+- only detected package-manager `run <script>` commands are considered
+- script names, package managers, first command tokens, and shell control tokens
+  are checked against default allowlists before a run
+- refused checks are recorded as skipped in the verification summary
+
+A package script can still do whatever its repository author wrote, so run
+freshbuild in repositories you trust and keep script allowlists tight for agents.
+
+## Proof artifacts
+
+A run writes:
+
+- `.freshbuild/verification-summary.md`
+- `.freshbuild/verification-summary.json`
+
+The summaries include changed files, selected checks, status, durations, warnings,
+and bounded stdout/stderr notes.
+
+## Commands
+
+```sh
+freshbuild plan [--root DIR] [--changed a,b]
+freshbuild run  [--root DIR] [--changed a,b] [--dry-run] [--output DIR] [--timeout MS]
+freshbuild once [same options as run]
 ```
-
-This writes `.freshbuild/verification-summary.md` and
-`.freshbuild/verification-summary.json`.
-
-## Planned V1
-
-The scoped first version remains deliberately small:
-
-- detect package managers and useful project scripts
-- watch changed files with conservative defaults
-- emit Markdown and JSON verification summaries
-- keep command execution explicit and caller-controlled
-- stay local-first by default
-
-See [docs/PRD.md](docs/PRD.md) for the scoped V1 definition.
-
-## Local-first safety notes
-
-- No hidden network access: core modules do not call remote APIs, publish data,
-  install dependencies, or contact package registries.
-- No credential access: freshbuild does not read environment secrets, SSH keys,
-  npm tokens, or Git credentials.
-- No command execution in current modules: detection reads package metadata,
-  watchers poll filesystem state, and summary output writes local files only.
-- Ignored noisy directories include `.git`, `node_modules`, `.freshbuild`,
-  `dist`, `build`, and `coverage` by default.
-- Callers are responsible for choosing whether to run build/test commands from
-  detected scripts.
 
 ## Verify this repository
 
-Run the local validation script before opening a pull request:
-
 ```sh
-bash scripts/validate.sh
+npm test
+npm run check
+npm run smoke
+npm run validate
 ```
-
-`scripts/validate.sh` checks required files and runs available package scripts.
-Missing optional `agent-qc` is treated as a skip, not a failure.
 
 ## Documentation
 
-- [Documentation index](docs/README.md)
-- [Local-first security guarantees](docs/LOCAL_FIRST.md)
-- [Contributing guide](CONTRIBUTING.md)
-- [Security policy](SECURITY.md)
+- [Product requirements](docs/PRD.md)
+- [Task plan](docs/TASKS.md)
+- [Orchestration handoff](docs/ORCHESTRATION.md)
+- [Local-first guarantees](docs/LOCAL_FIRST.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
 
 ## License
 

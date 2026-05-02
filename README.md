@@ -3,11 +3,15 @@
 freshbuild is a local-first toolkit for detecting project build signals, watching
 changed files, and producing verification proof-of-work artifacts.
 
-It is intentionally small and conservative: it inspects files in the repository
-you point it at, returns structured data, and leaves the decision to run commands
-with the caller.
+The idea is simple: watch a repository, rerun the smallest useful checks after a
+change, and write proof-of-work artifacts that humans and agents can attach to a
+handoff or pull request.
 
-## Status
+## Why this exists
+
+Fast agent loops break down when verification is slow, noisy, or undocumented.
+`freshbuild` is scoped to make local feedback tighter without turning into a CI
+replacement.
 
 This repository is early-stage. The targeted check runner is not implemented yet;
 it remains blocked pending explicit approval because debounce/locking behavior can
@@ -65,11 +69,7 @@ const markdown = renderVerificationSummaryMarkdown({
 });
 
 console.log(markdown);
-```
 
-Stop the watcher when your process is done:
-
-```js
 await watcher.stop();
 ```
 
@@ -95,6 +95,18 @@ await writeVerificationSummary(
 
 This writes `.freshbuild/verification-summary.md` and
 `.freshbuild/verification-summary.json`.
+
+## Planned V1
+
+The scoped first version remains deliberately small:
+
+- detect package managers and useful project scripts
+- watch changed files with conservative defaults
+- emit Markdown and JSON verification summaries
+- keep command execution explicit and caller-controlled
+- stay local-first by default
+
+See [docs/PRD.md](docs/PRD.md) for the scoped V1 definition.
 
 ## Local-first safety notes
 

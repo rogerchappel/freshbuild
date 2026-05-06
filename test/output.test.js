@@ -85,6 +85,7 @@ describe('verification summary renderers', () => {
     assert.match(markdown, /^# PR Verification/m);
     assert.match(markdown, /- \*\*Status:\*\* passed/);
     assert.match(markdown, /- \*\*passed\*\* unit tests — `npm test` \(42ms\)/);
+    assert.match(markdown, /  - README covers safety notes/);
     assert.match(markdown, /- src\/output\/verification-summary\.js/);
     assert.match(markdown, /- \*\*markdown\*\* `.freshbuild\/verification-summary\.md`/);
     assert.match(markdown, /targeted runner remains approval-blocked/);

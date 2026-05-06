@@ -37,6 +37,23 @@ function categorizeScript(scriptName) {
   return categories;
 }
 
+function categoryRank(scriptName, category) {
+  const preferredNames = DEFAULT_SCRIPT_CATEGORIES[category] ?? [];
+  const exactIndex = preferredNames.indexOf(scriptName);
+  if (exactIndex !== -1) return exactIndex;
+
+  const familyIndex = preferredNames.findIndex((name) => scriptName.startsWith(`${name}:`));
+  return familyIndex === -1 ? Number.MAX_SAFE_INTEGER : familyIndex + 0.5;
+}
+
+function compareScriptsForCategory(category) {
+  return (left, right) => {
+    const rankDelta = categoryRank(left.name, category) - categoryRank(right.name, category);
+    if (rankDelta !== 0) return rankDelta;
+    return left.name.localeCompare(right.name);
+  };
+}
+
 export async function detectBuildScripts(projectRoot = process.cwd(), options = {}) {
   const root = path.resolve(projectRoot);
   const packageJsonPath = path.join(root, 'package.json');
@@ -78,6 +95,10 @@ export async function detectBuildScripts(projectRoot = process.cwd(), options = 
       scriptsByCategory[category] ??= [];
       scriptsByCategory[category].push(script);
     }
+  }
+
+  for (const [category, categoryScripts] of Object.entries(scriptsByCategory)) {
+    categoryScripts.sort(compareScriptsForCategory(category));
   }
 
   return {

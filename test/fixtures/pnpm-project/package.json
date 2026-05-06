@@ -4,6 +4,7 @@
   "scripts": {
     "build:app": "tsc -b",
     "test:unit": "vitest run",
+    "test": "node --test",
     "typecheck": "tsc --noEmit",
     "dev": "vite"
   }

@@ -78,10 +78,10 @@ describe('detectBuildScripts', () => {
     assert.deepEqual(result.scripts.find((script) => script.name === 'test').runCommand, ['npm', 'run', 'test']);
   });
 
-  it('categorizes script families with colon suffixes', async () => {
+  it('categorizes script families with deterministic preference order', async () => {
     const result = await detectBuildScripts(fixture('pnpm-project'));
     assert.deepEqual(result.scriptsByCategory.build.map((script) => script.name), ['build:app']);
-    assert.deepEqual(result.scriptsByCategory.test.map((script) => script.name), ['test:unit']);
+    assert.deepEqual(result.scriptsByCategory.test.map((script) => script.name), ['test', 'test:unit']);
     assert.deepEqual(result.scriptsByCategory.typecheck.map((script) => script.name), ['typecheck']);
     assert.deepEqual(result.scripts.find((script) => script.name === 'build:app').runCommand, ['pnpm', 'run', 'build:app']);
   });

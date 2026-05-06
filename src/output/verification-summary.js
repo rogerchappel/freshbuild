@@ -95,7 +95,9 @@ export function renderVerificationSummaryMarkdown(summaryInput = {}) {
     ...renderList(summary.checks, 'No checks recorded.', (check) => {
       const command = check.command ? ` — \`${check.command}\`` : '';
       const duration = check.durationMs === null ? '' : ` (${check.durationMs}ms)`;
-      return `- **${check.status}** ${check.name}${command}${duration}`;
+      const notes = check.notes.map((note) => `  - ${note}`).join('\n');
+      const noteBlock = notes ? `\n${notes}` : '';
+      return `- **${check.status}** ${check.name}${command}${duration}${noteBlock}`;
     }),
     '',
     '## Changed Files',

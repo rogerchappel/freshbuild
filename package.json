@@ -2,6 +2,14 @@
   "name": "freshbuild",
   "version": "0.1.0",
   "description": "Local-first, agent-friendly build watcher and proof-of-work check runner.",
+  "homepage": "https://github.com/rogerchappel/freshbuild#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerchappel/freshbuild.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/freshbuild/issues"
+  },
   "type": "module",
   "main": "./src/index.js",
   "exports": {
@@ -30,6 +38,9 @@
   ],
   "author": "Roger Chappel",
   "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
   "bin": {
     "freshbuild": "./src/cli.js"
   }

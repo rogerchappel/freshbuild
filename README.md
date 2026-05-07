@@ -73,8 +73,10 @@ freshbuild maps changed files to conservative categories:
 - tests: test, lint
 - docs/config: check/lint/test where scripts exist
 
-Only the first matching script per category is selected, in stable order. That
-keeps agent loops short while still producing meaningful proof.
+Only the first matching script per category is selected, in stable order. Exact
+canonical names win over suffix variants (`test` before `test:unit`, `check`
+before `validate`), then ties are sorted by script name. That keeps agent loops
+short, deterministic, and still useful enough to produce meaningful proof.
 
 ## Safety and privacy
 
@@ -99,7 +101,8 @@ A run writes:
 - `.freshbuild/verification-summary.json`
 
 The summaries include changed files, selected checks, status, durations, warnings,
-and bounded stdout/stderr notes.
+and bounded per-check notes. Markdown is meant for humans reviewing an agent PR;
+JSON uses a versioned schema for tools that want to archive or compare receipts.
 
 ## Commands
 
@@ -108,6 +111,10 @@ freshbuild plan [--root DIR] [--changed a,b]
 freshbuild run  [--root DIR] [--changed a,b] [--dry-run] [--output DIR] [--timeout MS]
 freshbuild once [same options as run]
 ```
+
+Use `run --dry-run` when an agent needs a local proof plan without executing
+repository scripts. Refused checks are recorded as skipped with the safety reason
+instead of silently disappearing.
 
 ## Verify this repository
 

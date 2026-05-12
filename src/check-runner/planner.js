@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { detectBuildScripts } from '../detection/index.js';
+import { loadFreshbuildConfig, mergeFreshbuildOptions } from './config.js';
 
 const DEFAULT_TARGET_RULES = [
   { match: /(^|\/)(package\.json|package-lock\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb)$/i, categories: ['check', 'typecheck', 'test', 'build', 'lint'], reason: 'package metadata changed' },
@@ -47,11 +48,13 @@ function firstScriptForCategory(scriptsByCategory, category) {
 }
 
 export async function planChecks(projectRoot = process.cwd(), options = {}) {
-  const changedFiles = normalizeChangedFiles(options.changedFiles ?? []);
-  const detection = options.buildScriptDetection ?? await detectBuildScripts(projectRoot, options);
-  const { categories, reasons } = categoriesForChangedFiles(changedFiles, options.rules ?? DEFAULT_TARGET_RULES);
-  const categoryOrder = options.categoryOrder ?? DEFAULT_CATEGORY_ORDER;
-  const allowCategories = new Set(options.allowCategories ?? categoryOrder);
+  const loadedConfig = await loadFreshbuildConfig(projectRoot, options);
+  const effectiveOptions = mergeFreshbuildOptions(loadedConfig.config, options);
+  const changedFiles = normalizeChangedFiles(effectiveOptions.changedFiles ?? []);
+  const detection = effectiveOptions.buildScriptDetection ?? await detectBuildScripts(projectRoot, effectiveOptions);
+  const { categories, reasons } = categoriesForChangedFiles(changedFiles, effectiveOptions.rules ?? DEFAULT_TARGET_RULES);
+  const categoryOrder = effectiveOptions.categoryOrder ?? DEFAULT_CATEGORY_ORDER;
+  const allowCategories = new Set(effectiveOptions.allowCategories ?? categoryOrder);
   const selected = [];
   const seenScripts = new Set();
 
@@ -78,7 +81,8 @@ export async function planChecks(projectRoot = process.cwd(), options = {}) {
     categories: [...categories].sort(),
     reasons,
     checks: selected,
-    warnings: detection.warnings ?? []
+    configPath: loadedConfig.path,
+    warnings: [...(detection.warnings ?? []), ...(loadedConfig.warnings ?? [])]
   };
 }
 

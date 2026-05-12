@@ -6,13 +6,14 @@ import { planChecks, runChecks } from './index.js';
 const USAGE = `freshbuild — local-first check planner and proof runner
 
 Usage:
-  freshbuild plan [--root DIR] [--changed a,b]
-  freshbuild run  [--root DIR] [--changed a,b] [--dry-run] [--output DIR] [--timeout MS]
+  freshbuild plan [--root DIR] [--changed a,b] [--config FILE]
+  freshbuild run  [--root DIR] [--changed a,b] [--config FILE] [--dry-run] [--output DIR] [--timeout MS]
   freshbuild once [same options as run]
 
 Options:
   --root DIR       Project root to inspect (default: current directory)
   --changed a,b    Comma-separated changed files used to select checks
+  --config FILE    Read defaults from a JSON config file (default: .freshbuild.json)
   --dry-run        Plan and record checks without running package scripts
   --output DIR     Directory for verification-summary.md/json
   --timeout MS     Per-check timeout in milliseconds
@@ -61,7 +62,7 @@ async function main() {
   }
 
   if (command === 'plan') {
-    const plan = await planChecks(root, { changedFiles });
+    const plan = await planChecks(root, { changedFiles, configPath: args.config });
     console.log(JSON.stringify(plan, null, 2));
     return;
   }
@@ -69,10 +70,11 @@ async function main() {
   if (command === 'run' || command === 'once') {
     const result = await runChecks(root, {
       changedFiles,
+      configPath: args.config,
       dryRun: Boolean(args['dry-run']),
       outputDirectory: args.output,
       timeoutMs: args.timeout ? Number(args.timeout) : undefined,
-      writeSummary: !args['no-summary']
+      writeSummary: args['no-summary'] ? false : undefined
     });
     console.log(JSON.stringify({ status: result.status, artifacts: result.artifacts, checks: result.checks, warnings: result.warnings }, null, 2));
     process.exitCode = result.status === 'failed' ? 1 : 0;

@@ -36,6 +36,16 @@ Run selected checks and write `.freshbuild/verification-summary.md` plus JSON:
 npx freshbuild run --changed src/index.js --output .freshbuild
 ```
 
+Optionally keep agent-friendly defaults in `.freshbuild.json`:
+
+```json
+{
+  "changedFiles": ["src/index.js"],
+  "allowCategories": ["check", "test"],
+  "outputDirectory": ".freshbuild"
+}
+```
+
 Smoke it against this repo's fixture project:
 
 ```sh
@@ -107,8 +117,8 @@ JSON uses a versioned schema for tools that want to archive or compare receipts.
 ## Commands
 
 ```sh
-freshbuild plan [--root DIR] [--changed a,b]
-freshbuild run  [--root DIR] [--changed a,b] [--dry-run] [--output DIR] [--timeout MS]
+freshbuild plan [--root DIR] [--changed a,b] [--config FILE]
+freshbuild run  [--root DIR] [--changed a,b] [--config FILE] [--dry-run] [--output DIR] [--timeout MS]
 freshbuild once [same options as run]
 ```
 

@@ -1,7 +1,9 @@
 import { spawn } from 'node:child_process';
+import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { planChecks } from './planner.js';
 import { validateCheckSafety } from './safety.js';
+import { loadFreshbuildConfig, mergeFreshbuildOptions } from './config.js';
 import { writeVerificationSummary } from '../output/index.js';
 
 function commandToString(command) {
@@ -53,24 +55,26 @@ export class CheckRunner {
 
     this.#running = true;
     try {
-      const plan = options.plan ?? await planChecks(projectRoot, options);
+      const loadedConfig = await loadFreshbuildConfig(projectRoot, options);
+      const effectiveOptions = mergeFreshbuildOptions(loadedConfig.config, options);
+      const plan = effectiveOptions.plan ?? await planChecks(projectRoot, effectiveOptions);
       const checks = [];
       const warnings = [...(plan.warnings ?? [])];
 
       for (const check of plan.checks) {
-        const safety = validateCheckSafety(check, options.safety ?? {});
+        const safety = validateCheckSafety(check, effectiveOptions.safety ?? {});
         if (!safety.ok) {
           checks.push({ name: check.name, status: 'skipped', command: commandToString(check.runCommand), notes: safety.errors });
           warnings.push(...safety.errors.map((error) => `${check.name}: ${error}`));
           continue;
         }
 
-        if (options.dryRun) {
+        if (effectiveOptions.dryRun) {
           checks.push({ name: check.name, status: 'planned', command: commandToString(check.runCommand), notes: [check.reason] });
           continue;
         }
 
-        const result = await runSpawn(check.runCommand, { cwd: plan.projectRoot, timeoutMs: options.timeoutMs, env: options.env });
+        const result = await runSpawn(check.runCommand, { cwd: plan.projectRoot, timeoutMs: effectiveOptions.timeoutMs, env: effectiveOptions.env });
         checks.push({
           name: check.name,
           status: result.status,
@@ -90,7 +94,7 @@ export class CheckRunner {
         : checks.some((check) => check.status === 'skipped') ? 'skipped'
           : checks.length ? 'passed' : 'skipped';
       const summary = {
-        project: options.projectName ?? 'freshbuild project',
+        project: effectiveOptions.projectName ?? 'freshbuild project',
         title: 'freshbuild Verification Summary',
         overallStatus,
         changedFiles: plan.changedFiles,
@@ -98,7 +102,10 @@ export class CheckRunner {
         warnings,
         notes: [`package manager: ${plan.packageManager ?? 'not detected'}`, `categories: ${plan.categories.join(', ') || 'none'}`]
       };
-      const artifacts = options.writeSummary === false ? null : await writeVerificationSummary(summary, { outputDirectory: options.outputDirectory ?? '.freshbuild' });
+      const outputDirectory = effectiveOptions.outputDirectory && path.isAbsolute(effectiveOptions.outputDirectory)
+        ? effectiveOptions.outputDirectory
+        : path.join(plan.projectRoot, effectiveOptions.outputDirectory ?? '.freshbuild');
+      const artifacts = effectiveOptions.writeSummary === false ? null : await writeVerificationSummary(summary, { outputDirectory });
       return { status: overallStatus, plan, checks, summary, artifacts, warnings };
     } finally {
       this.#running = false;

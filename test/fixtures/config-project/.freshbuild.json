@@ -1,0 +1,6 @@
+{
+  "changedFiles": ["README.md"],
+  "allowCategories": ["check"],
+  "outputDirectory": ".freshbuild/configured",
+  "timeoutMs": 30000
+}

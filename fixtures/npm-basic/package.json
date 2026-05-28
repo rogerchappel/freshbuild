@@ -1,0 +1,11 @@
+{
+  "name": "freshbuild-fixture-npm-basic",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node -e \"console.log('fixture check')\"",
+    "test": "node -e \"console.log('fixture test')\"",
+    "build": "node -e \"console.log('fixture build')\"",
+    "deploy": "node -e \"process.exit(99)\""
+  }
+}

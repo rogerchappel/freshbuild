@@ -6,16 +6,15 @@ contributors, and implementation constraints.
 
 ## Now
 
-- Define the smallest useful project scope.
-- Keep repository setup, documentation, and verification easy for contributors
-  to follow.
-- Ship small, reviewable improvements.
+- Stabilize the initial CLI MVP through release candidate review.
+- Keep verification output predictable for agent-authored pull requests.
+- Document safe usage clearly for local repositories.
 
 ## Next
 
-- Add the next capabilities that directly support the project's primary users.
-- Improve tests, docs, and examples around the most used workflows.
-- Reduce setup friction discovered during early use.
+- Add git changed-file discovery.
+- Add config file support for project-specific allowlists.
+- Improve proof metadata for CI and multi-agent workflows.
 
 ## Later
 

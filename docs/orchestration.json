@@ -1,0 +1,28 @@
+{
+  "name": "freshbuild",
+  "classification": "local-first developer tooling",
+  "entrypoints": {
+    "cli": "freshbuild",
+    "run": "freshbuild run",
+    "watch": "freshbuild watch"
+  },
+  "artifacts": {
+    "markdown": ".freshbuild/verification.md",
+    "json": ".freshbuild/verification.json"
+  },
+  "exitCodes": {
+    "0": "verification passed",
+    "1": "verification failed",
+    "2": "verification skipped because no safe script was selected"
+  },
+  "safeDefaultScripts": [
+    "check",
+    "typecheck",
+    "lint",
+    "test",
+    "build",
+    "smoke"
+  ],
+  "networkBehavior": "none by default; local package scripts may do whatever the repository defines",
+  "releaseReadiness": "release-candidate"
+}

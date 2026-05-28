@@ -41,6 +41,15 @@ Decision: build now
 - Run targeted checks with debounce/locking
 - Write verification summary Markdown/JSON
 
+## MVP Implementation
+
+- CLI entrypoint: `freshbuild`.
+- Commands: `run` and `watch`.
+- Supported package managers: npm, pnpm, yarn, bun.
+- Default safe scripts: `check`, `typecheck`, `lint`, `test`, `build`, `smoke`.
+- Proof artifacts: `.freshbuild/verification.md` and `.freshbuild/verification.json`.
+- Smoke target: `fixtures/npm-basic`.
+
 ## Out of Scope
 
 - Full CI replacement
@@ -53,6 +62,13 @@ Decision: build now
 - README with install, quickstart, and safety notes.
 - Local-first behavior documented clearly.
 - No hidden network, credential, or publish behavior.
+
+## Acceptance Criteria
+
+- `npm run check` passes.
+- `npm test` passes.
+- `npm run smoke` passes.
+- `bash scripts/validate.sh` passes.
 
 ## Agent Prompt
 

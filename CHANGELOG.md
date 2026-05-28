@@ -9,7 +9,11 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Added
 
-- Initial project setup.
+- Local-first TypeScript CLI with `run` and `watch` commands.
+- Package manager detection and safe package script planning.
+- Markdown and JSON verification proof artifacts.
+- Fixture-backed tests and smoke verification.
+- Safety, orchestration, and example documentation.
 
 ## Release Links
 

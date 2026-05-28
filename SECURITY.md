@@ -2,18 +2,12 @@
 
 ## Supported Versions
 
-Replace this section with the supported versions for `freshbuild`.
-
-Example:
-
-```md
 | Version | Supported |
 | --- | --- |
-| .x | Yes |
-| < .0 | No |
-```
+| 0.1.x | Yes, after the first public release |
+| < 0.1.0 | No |
 
-If the project does not publish versioned releases yet, say that clearly.
+`freshbuild` is currently in release-candidate form. Security-sensitive users should review the package scripts in their own repositories before running local checks.
 
 ## Reporting a Vulnerability
 
@@ -45,6 +39,7 @@ In scope:
 
 - Vulnerabilities in freshbuild.
 - Insecure default configuration shipped by this project.
+- Unsafe command execution behavior in the CLI.
 - CI, release, or dependency guidance maintained by this project.
 
 Out of scope:

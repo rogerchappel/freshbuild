@@ -20,7 +20,8 @@
     "src",
     "README.md",
     "docs",
-    "examples"
+    "examples",
+    "LICENSE"
   ],
   "scripts": {
     "test": "node --test",

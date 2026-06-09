@@ -21,7 +21,8 @@
     "README.md",
     "docs",
     "examples",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md"
   ],
   "scripts": {
     "test": "node --test",
@@ -45,6 +46,6 @@
     "node": ">=20"
   },
   "bin": {
-    "freshbuild": "./src/cli.js"
+    "freshbuild": "src/cli.js"
   }
 }

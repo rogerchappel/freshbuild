@@ -72,3 +72,7 @@ See [SECURITY.md](SECURITY.md). Do not include secrets, private tokens, propriet
 ## License
 
 MIT
+
+Release verification scripts not already covered above:
+
+- `npm run test` - node --test

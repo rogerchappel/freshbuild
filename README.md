@@ -52,6 +52,21 @@ npm run release:check
 `release:check` runs syntax/test checks, the fixture smoke command, and a dry-run
 `npm pack` so release contents are visible before publishing.
 
+## Development
+
+Use the same local checks that back release readiness:
+
+```bash
+npm run check
+npm test
+npm run smoke
+npm run validate
+npm run package:smoke
+npm run release:check
+```
+
+Run the narrower commands while iterating, then finish with the broadest available check before opening a PR.
+
 ## Limitations
 
 - The package is still v0.1.0 and may change CLI flags or summary fields before

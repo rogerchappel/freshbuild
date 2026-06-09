@@ -22,7 +22,8 @@
     "docs",
     "examples",
     "LICENSE",
-    "SECURITY.md"
+    "SECURITY.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "node --test",
@@ -46,6 +47,6 @@
     "node": ">=20"
   },
   "bin": {
-    "freshbuild": "src/cli.js"
+    "freshbuild": "./src/cli.js"
   }
 }

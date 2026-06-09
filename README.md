@@ -1,10 +1,15 @@
 # freshbuild
 
-freshbuild is an early-stage local-first developer tool.
+freshbuild is a local-first check planner and proof runner for agent-assisted
+development loops. It detects the package manager, plans relevant project
+checks, runs them with bounded timeouts, and writes verification summaries that
+can be attached to a PR or handoff.
 
 ## Status
 
-This repository is early-stage. The README now reflects the current project intent from `docs/PRD.md`, but behavior should still be treated as pre-1.0 until implementation, examples, and release checks mature.
+This is a v0.1.0 developer tool. Treat the CLI output and summary schema as
+early-stage, pin versions in automation, and run the verification commands below
+before relying on it in CI.
 
 ## Install from a checkout
 
@@ -14,32 +19,47 @@ cd freshbuild
 npm install
 ```
 
-## Use
+## CLI Quickstart
 
-Start by reading the product notes and running the local checks:
+Inspect a project and print the planned checks:
 
 ```sh
-sed -n '1,120p' docs/PRD.md
-npm test
+node src/cli.js plan --root test/fixtures/npm-project --changed src/index.js
 ```
 
-If you are evaluating the package contents before a release, run:
+Run the selected checks and write verification artifacts:
 
 ```sh
-npm test
+node src/cli.js run --root test/fixtures/smoke-project --changed src/index.js --output .freshbuild/demo
+```
+
+For a quick manual check, show the maintained fixture watcher example:
+
+```sh
+node examples/basic-watch.js
 ```
 
 ## Verification
 
 ```sh
+npm run check
 npm test
+npm run smoke
+npm run package:smoke
+npm run release:check
 ```
+
+`release:check` runs syntax/test checks, the fixture smoke command, and a dry-run
+`npm pack` so release contents are visible before publishing.
 
 ## Limitations
 
-- The package is still a v0.1.0 project and may not expose a finished CLI or public API yet.
-- Treat the PRD as direction, not a guarantee that every listed capability is implemented.
-- Do not use the package for production security, compliance, or release decisions until tests and examples cover that workflow.
+- The package is still v0.1.0 and may change CLI flags or summary fields before
+  a stable 1.0 release.
+- Check planning is heuristic; review generated summaries before committing or
+  relying on them for release decisions.
+- freshbuild runs local package scripts and should be pointed only at projects
+  whose scripts you trust.
 
 ## Contributing
 
@@ -52,3 +72,7 @@ See [SECURITY.md](SECURITY.md). Do not include secrets, private tokens, propriet
 ## License
 
 MIT
+
+Release verification scripts not already covered above:
+
+- `npm run test` - node --test

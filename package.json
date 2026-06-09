@@ -21,7 +21,8 @@
     "README.md",
     "docs",
     "examples",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md"
   ],
   "scripts": {
     "test": "node --test",

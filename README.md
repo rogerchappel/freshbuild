@@ -50,7 +50,9 @@ npm run release:check
 ```
 
 `release:check` runs syntax/test checks, the fixture smoke command, and a dry-run
-`npm pack` so release contents are visible before publishing.
+package contents check. The package smoke fails if the CLI entrypoint, library
+entrypoint, maintained example, local-first docs, license, security policy, or
+changelog would be missing from the npm tarball.
 
 ## Development
 

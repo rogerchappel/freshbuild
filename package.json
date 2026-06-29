@@ -31,7 +31,7 @@
     "test": "node --test",
     "check": "node --check src/cli.js && node --test",
     "smoke": "node src/cli.js run --root test/fixtures/smoke-project --changed src/index.js --output .freshbuild/smoke",
-    "package:smoke": "npm pack --dry-run",
+    "package:smoke": "node scripts/package-smoke.js",
     "release:check": "npm run check && npm run smoke && npm run package:smoke",
     "validate": "bash scripts/validate.sh"
   },
